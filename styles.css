@@ -32,7 +32,8 @@
 .log-item{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.2);padding:6px 10px;border-radius:4px}
 .log-time{color:#90caf9}
 .log-winner{color:#4caf50;font-weight:700}
-#create-room-btn{width:100%;background:#2196f3;color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+#create-room-btn,#leave-room-btn{width:100%;background:#2196f3;color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+#leave-room-btn{background:#f44336}
 .xox-notification{position:fixed;bottom:100px;right:30px;padding:12px 20px;border-radius:8px;z-index:10001;font-size:14px;background:rgba(33,150,243,.9);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:slideIn .3s ease}
 .xox-notification-error{background:rgba(244,67,54,.9)}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
