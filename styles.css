@@ -1,58 +1,41 @@
 #xox-toggle-btn {
-    position: fixed !important; 
-    bottom: 20px !important; 
-    right: 20px !important;
-    width: 65px; 
-    height: 65px; 
-    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
-    border: none; 
-    border-radius: 50%; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    cursor: pointer; 
-    z-index: 2147483646 !important; 
-    box-shadow: 0 4px 20px rgba(33, 150, 243, .3);
-    transition: all .3s; 
-    color: #fff; 
-    font-weight: 700; 
-    font-size: 24px;
+    position: fixed; bottom: 20px; right: 20px;
+    width: 65px; height: 65px; background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 2147483646; box-shadow: 0 4px 20px rgba(33, 150, 243, .3);
+    transition: all .3s; color: #fff; font-weight: 700; font-size: 24px;
 }
 #xox-game-panel {
     display: none;
-    position: fixed !important; 
-    bottom: 20px !important; 
-    right: 100px !important;
-    width: 400px !important; 
-    height: 580px !important;
+    position: fixed !important; bottom: 20px !important; right: 100px !important;
+    width: 400px !important; height: 580px !important;
     background: rgba(18, 24, 38, .95) !important;
-    border-radius: 16px !important; 
-    box-shadow: 0 20px 40px rgba(0, 0, 0, .3) !important;
-    backdrop-filter: blur(20px) !important; 
-    border: 1px solid rgba(33, 150, 243, .2) !important;
-    flex-direction: column !important; 
-    z-index: 2147483647 !important;
-    color: #e3f2fd !important; 
-    font-family: Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif !important;
+    border-radius: 16px !important; box-shadow: 0 20px 40px rgba(0, 0, 0, .3) !important;
+    backdrop-filter: blur(20px) !important; border: 1px solid rgba(33, 150, 243, .2) !important;
+    flex-direction: column !important; z-index: 2147483647 !important;
+    color: #e3f2fd !important; font-family: Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif !important;
     overflow: hidden !important;
-    visibility: visible !important; 
-    opacity: 1 !important;
-    top: auto !important;
-    left: auto !important;
+    visibility: hidden; opacity: 0; transition: opacity .3s ease, visibility .3s ease;
 }
 #xox-game-panel.panel-visible {
     display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 .xox-header {
-    padding: 16px 20px; 
-    background: rgba(25, 118, 210, .1);
-    border-bottom: 1px solid rgba(33, 150, 243, .2); 
-    display: flex;
-    justify-content: space-between; 
-    align-items: center;
+    padding: 16px 20px; background: rgba(25, 118, 210, .1);
+    border-bottom: 1px solid rgba(33, 150, 243, .2); display: flex;
+    justify-content: space-between; align-items: center;
+    gap: 10px;
 }
-.xox-title { font-size: 16px; font-weight: 600; color: #2196f3; }
-.xox-username { font-size: 13px; color: #90caf9; opacity: .8; }
+.header-stats {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    color: #90caf9; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 12px;
+}
+.online-dot { width: 8px; height: 8px; background-color: #4caf50; border-radius: 50%; box-shadow: 0 0 6px #4caf50; }
+.active-users-count { font-weight: bold; color: #fff; }
+.xox-title { font-size: 16px; font-weight: 600; color: #2196f3; flex-shrink: 0; }
+.xox-username { font-size: 13px; color: #90caf9; opacity: .8; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #close-panel-btn {
     background: none; border: none; color: #90caf9; font-size: 20px;
     cursor: pointer; width: 32px; height: 32px; border-radius: 50%;
@@ -105,5 +88,11 @@
 .game-board.win-0::after { top: 15%; } .game-board.win-1::after { top: 48%; } .game-board.win-2::after { top: 81%; }
 .game-board.win-3::after { left: 15%; } .game-board.win-4::after { left: 48%; } .game-board.win-5::after { left: 81%; }
 .game-board.win-6::after { transform: rotate(45deg); } .game-board.win-7::after { transform: rotate(-45deg); }
+.stats-grid { display: flex; flex-direction: column; gap: 16px; }
+.stat-card { background: rgba(33, 150, 243, 0.1); border-radius: 8px; padding: 16px; }
+.stat-card h4 { color: #2196F3; margin-top: 0; margin-bottom: 12px; font-size: 14px; }
+.stat-list { display: flex; flex-direction: column; gap: 8px; }
+.stat-item { display: flex; justify-content: space-between; padding: 8px; background: rgba(0, 0, 0, 0.1); border-radius: 6px; font-size: 12px; }
+.no-data { text-align: center; color: #90caf9; font-style: italic; opacity: 0.7; }
 .final-winner { font-size: 1.2em; font-weight: bold; color: #FFEB3B; padding: 10px; border-radius: 8px; background: rgba(255, 235, 59, 0.1); animation: pulse 1.5s infinite; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
