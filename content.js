@@ -5,6 +5,7 @@ class XOXGame {
         this.currentPage = 'rooms';
         this.allRooms = [];
         this.pollingErrorCount = 0;
+        this.roomId = null;
         this.init();
     }
 
@@ -17,11 +18,45 @@ class XOXGame {
     }
 
     createGameUI() {
-        // ... Bu fonksiyon öncekiyle aynı, değişiklik yok ...
+        const panel = document.createElement('div');
+        panel.id = 'xox-game-panel';
+        panel.style.display = 'none';
+        panel.innerHTML = `
+            <div class="xox-header">
+                <span class="xox-title">CG XOX OYUNU</span>
+                <span class="xox-username"></span>
+                <button id="close-panel-btn">×</button>
+            </div>
+            <div class="xox-nav">
+                <button class="nav-btn active" data-page="rooms">Odalar</button>
+                <button class="nav-btn" data-page="create">Oda Oluştur</button>
+                <button class="nav-btn" data-page="stats">İstatistik</button>
+                <button class="nav-btn" data-page="game" id="game-nav" style="display:none">Oyun</button>
+            </div>
+            <div class="xox-content">
+                <div id="page-rooms" class="page active"><div id="rooms-list" class="rooms-list"></div></div>
+                <div id="page-create" class="page">
+                    <div class="create-room-form">
+                        <h3>Yeni Oda Oluştur</h3>
+                        <div class="form-group"><label>Kaç el oynanacak? (max 10)</label><input type="number" id="max-rounds" min="1" max="10" value="1"></div>
+                        <button id="create-room-btn">Oda Oluştur</button>
+                    </div>
+                </div>
+                <div id="page-stats" class="page"><div id="stats-content">Yükleniyor...</div></div>
+                <div id="page-game" class="page">
+                    <div class="game-container"><div id="game-info"></div><div id="game-board" class="game-board"></div><div id="game-status"></div></div>
+                </div>
+            </div>`;
+        document.body.appendChild(panel);
+
+        const toggleBtn = document.createElement('div');
+        toggleBtn.id = 'xox-toggle-btn';
+        toggleBtn.innerHTML = `<span>🎲</span>`;
+        document.body.appendChild(toggleBtn);
     }
 
     extractPlayerName() {
-        const nameEl = document.querySelector('.p-navgroup-link .p-navgroup-linkText'); // İSTENEN YENİ SEÇİCİ
+        const nameEl = document.querySelector('.p-navgroup-link .p-navgroup-linkText');
         if (nameEl && nameEl.innerText.trim()) {
             this.player.name = nameEl.innerText.trim();
         }
@@ -37,15 +72,35 @@ class XOXGame {
     }
     
     showPage(pageName) {
-        // ... Bu fonksiyon öncekiyle aynı, değişiklik yok ...
+        if (!pageName) return;
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageName));
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.getElementById(`page-${pageName}`).classList.add('active');
+        this.currentPage = pageName;
+        if (pageName === 'stats') this.loadStats();
     }
 
     togglePanel() {
-        // ... Bu fonksiyon öncekiyle aynı, değişiklik yok ...
+        const panel = document.getElementById('xox-game-panel');
+        panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
     }
 
     async apiRequest(endpoint, options = {}) {
-        // ... Bu fonksiyon öncekiyle aynı, değişiklik yok ...
+        try {
+            const response = await fetch(`${this.apiUrl}/${endpoint}`, {
+                method: 'GET',
+                ...options,
+                headers: { 'Content-Type': 'application/json', ...options.headers },
+            });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: "Sunucu hatası" }));
+                throw new Error(errorData.message);
+            }
+            return await response.json();
+        } catch (error) {
+            this.showNotification(error.message, "error");
+            throw error;
+        }
     }
 
     async createRoom() {
@@ -73,7 +128,7 @@ class XOXGame {
         const result = await this.apiRequest(`rooms/${roomId}/watch`, { method: 'POST', body: JSON.stringify({ spectatorName: this.player.name }) });
         if (result.success) {
             this.roomId = roomId;
-            this.player.symbol = null; // İzleyicinin sembolü olmaz
+            this.player.symbol = null; 
             this.showPage('game');
             this.startPolling();
         }
@@ -99,8 +154,9 @@ class XOXGame {
     
     renderGame(room) {
         Object.assign(this, room);
-        const playerIsSpectator = !this.player.symbol;
-        const playerInGame = room.players.find(p => p.name === this.player.name);
+        const playerIsSpectator = this.player.symbol === null;
+        
+        document.getElementById('game-nav').style.display = 'block';
 
         document.getElementById('game-info').innerHTML = `
             <div class="game-info-item"><span>Oda: <strong>${this.roomId}</strong></span></div>
@@ -118,7 +174,7 @@ class XOXGame {
             statusEl.innerText = 'Rakip bekleniyor...';
         } else {
             const isMyTurn = this.currentPlayer === this.player.symbol;
-            statusEl.innerText = isMyTurn ? 'Sıra sende!' : 'Rakip oynuyor...';
+            statusEl.innerText = playerIsSpectator ? `Sıra: ${this.currentPlayer}` : (isMyTurn ? 'Sıra sende!' : 'Rakip oynuyor...');
         }
     }
 
@@ -130,8 +186,12 @@ class XOXGame {
             try {
                 const result = await this.apiRequest(`rooms/${this.roomId}`);
                 this.pollingErrorCount = 0;
-                if (result.success) this.renderGame(result.room);
-                else this.resetGame();
+                if (result.success) {
+                    this.renderGame(result.room);
+                } else {
+                    this.showNotification("Oda kapatıldı.", "info");
+                    this.resetGame();
+                }
             } catch {
                 this.pollingErrorCount++;
                 if (this.pollingErrorCount >= 5) {
@@ -181,9 +241,23 @@ class XOXGame {
         listEl.querySelectorAll('.watch-room-btn').forEach(b => b.addEventListener('click', e => this.watchRoom(e.target.dataset.roomId)));
     }
 
-    async loadStats() { /* ... */ }
-    renderStats(stats) { /* ... */ }
-    showNotification(message, type = "info", duration = 3000) { /* ... */ }
+    async loadStats() {
+        // İstatistikler henüz tam olarak implemente edilmedi.
+        document.getElementById('stats-content').innerHTML = '<div class="no-data">İstatistikler yakında...</div>';
+    }
+
+    renderStats(stats) {
+        // ...
+    }
+
+    showNotification(message, type = "info", duration = 3000) {
+        document.querySelectorAll('.xox-notification').forEach(n => n.remove());
+        const el = document.createElement('div');
+        el.className = `xox-notification xox-notification-${type}`;
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), duration);
+    }
     
     resetGame() {
         this.stopPolling();
@@ -194,4 +268,5 @@ class XOXGame {
         this.showPage('rooms');
     }
 }
+
 new XOXGame();
