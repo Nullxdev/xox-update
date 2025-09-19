@@ -5,6 +5,11 @@ class XOXGame {
         this.currentPage = 'rooms';
         this.isBotGame = false;
         this.botDifficulty = 'orta';
+        this.allRooms = [];
+        this.activeUsers = 0;
+        this.pollingErrorCount = 0;
+        this.roomId = null;
+        this.canMove = true;
         this.init();
     }
 
@@ -64,12 +69,18 @@ class XOXGame {
     }
     
     showPage(pageName) {
-        if (!pageName || this.isBotGame) return;
+        // --- DÜZELTME BURADA ---
+        // Bot oyunu başlangıcını engelleyen hatalı kontrol kaldırıldı.
+        if (!pageName) return;
+        // --- DÜZELTME BİTTİ ---
+        
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageName));
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.getElementById(`page-${pageName}`).classList.add('active');
         this.currentPage = pageName;
-        if (pageName === 'stats') this.loadStats();
+        if (pageName === 'stats') {
+            this.loadStats();
+        }
     }
 
     togglePanel() {
@@ -138,7 +149,7 @@ class XOXGame {
         } else {
             if (this.currentPlayer !== this.player.symbol) return;
             this.canMove = false;
-            const index = cell.dataset.index;
+            const index = parseInt(cell.dataset.index);
             await this.apiRequest(`rooms/${this.roomId}/move`, { method: 'POST', body: JSON.stringify({ player: this.player, index }) });
             setTimeout(() => { this.canMove = true; }, 1000);
         }
@@ -363,6 +374,9 @@ class XOXGame {
     getBotMove_Medium() {
         const winningMove = this.findWinningMove('O'); if (winningMove !== -1) return winningMove;
         const blockingMove = this.findWinningMove('X'); if (blockingMove !== -1) return blockingMove;
+        const center = 4; if (this.gameBoard[center] === '') return center;
+        const corners = [0, 2, 6, 8]; const availableCorners = corners.filter(i => this.gameBoard[i] === '');
+        if (availableCorners.length > 0) return availableCorners[Math.floor(Math.random() * availableCorners.length)];
         return this.getBotMove_Easy();
     }
     
@@ -429,5 +443,4 @@ class XOXGame {
     }
     checkDraw(board) { return board.every(cell => cell !== ''); }
 }
-
 new XOXGame();
