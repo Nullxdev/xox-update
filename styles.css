@@ -1,29 +1,53 @@
-#xox-toggle-btn{position:fixed;bottom:20px;right:20px;width:65px;height:65px;background:linear-gradient(135deg,#2196f3 0%,#1976d2 100%);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10000;box-shadow:0 4px 20px rgba(33,150,243,.3);transition:all .3s;color:#fff;font-weight:700;font-size:24px}
-/* ... Önceki stillerin hepsi aynı ... */
-#leave-room-btn{background:#f44336}
-.game-meta{font-size:11px;color:#90caf9;opacity:.7;text-align:center}
-
-/* --- YENİ EKLENEN STİLLER --- */
-.game-board { position: relative; }
-.winning-cell { color: #FFEB3B !important; transform: scale(1.1); }
-.game-board.win-0, .game-board.win-1, .game-board.win-2, .game-board.win-3, .game-board.win-4, .game-board.win-5, .game-board.win-6, .game-board.win-7 {
-    --line-color: #FFEB3B;
+#xox-toggle-btn {
+    position: fixed; bottom: 20px; right: 20px;
+    width: 65px; height: 65px; background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 2147483646; box-shadow: 0 4px 20px rgba(33, 150, 243, .3);
+    transition: all .3s; color: #fff; font-weight: 700; font-size: 24px;
 }
-.game-board.win-0::after, .game-board.win-1::after, .game-board.win-2::after { width: 90%; height: 6px; left: 5%; }
-.game-board.win-3::after, .game-board.win-4::after, .game-board.win-5::after { width: 6px; height: 90%; top: 5%; }
-.game-board.win-6::after, .game-board.win-7::after { width: 110%; height: 6px; left: -5%; top: 48%; }
-.game-board.win-0::after { top: 15%; }
-.game-board.win-1::after { top: 48%; }
-.game-board.win-2::after { top: 81%; }
-.game-board.win-3::after { left: 15%; }
-.game-board.win-4::after { left: 48%; }
-.game-board.win-5::after { left: 81%; }
-.game-board.win-6::after { transform: rotate(45deg); }
-.game-board.win-7::after { transform: rotate(-45deg); }
-.game-board[class*="win-"]::after {
-    content: '';
-    position: absolute;
-    background: var(--line-color);
-    border-radius: 3px;
-    box-shadow: 0 0 10px var(--line-color);
+#xox-game-panel {
+    display: none; /* Varsayılan olarak gizli */
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    
+    position: fixed !important; bottom: 20px !important; right: 100px !important;
+    width: 400px !important; height: 580px !important;
+    background: rgba(18, 24, 38, .95) !important;
+    border-radius: 16px !important; box-shadow: 0 20px 40px rgba(0, 0, 0, .3) !important;
+    backdrop-filter: blur(20px) !important; border: 1px solid rgba(33, 150, 243, .2) !important;
+    flex-direction: column !important; z-index: 2147483647 !important;
+    color: #e3f2fd !important; font-family: Segoe UI, -apple-system, BlinkMacSystemFont, sans-serif !important;
+    overflow: hidden !important;
 }
+#xox-game-panel.panel-visible {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+.xox-header {
+    padding: 16px 20px; background: rgba(25, 118, 210, .1);
+    border-bottom: 1px solid rgba(33, 150, 243, .2); display: flex;
+    justify-content: space-between; align-items: center;
+}
+.xox-title { font-size: 16px; font-weight: 600; color: #2196f3; }
+.xox-username { font-size: 13px; color: #90caf9; opacity: .8; }
+#close-panel-btn {
+    background: none; border: none; color: #90caf9; font-size: 20px;
+    cursor: pointer; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s ease;
+    position: relative; z-index: 10; /* Kapatma butonunu üste çıkar */
+}
+#close-panel-btn:hover { background: rgba(244, 67, 54, .1); color: #f44336; transform: rotate(90deg); }
+.xox-nav { display: flex; background: rgba(0, 0, 0, .1); border-bottom: 1px solid rgba(33, 150, 243, .2); }
+.nav-btn {
+    flex: 1; background: none; border: none; color: #90caf9; padding: 12px 8px;
+    cursor: pointer; font-size: 12px; font-weight: 500; transition: all .2s ease;
+    border-bottom: 2px solid transparent;
+}
+.nav-btn.active { color: #2196f3; background: rgba(33, 150, 243, .1); border-bottom-color: #2196f3; }
+.xox-content { flex-grow: 1; position: relative; }
+.page { position: absolute; width: 100%; height: 100%; padding: 20px; box-sizing: border-box; opacity: 0; transition: opacity .3s ease; visibility: hidden; overflow-y: auto; }
+.page.active { opacity: 1; visibility: visible; }
+/* ... (Diğer tüm stiller öncekiyle aynı kalacak) ... */
