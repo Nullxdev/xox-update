@@ -1,6 +1,6 @@
 class XOXGame {
     constructor() {
-        this.apiUrl = "https://xox-2arq.onrender.com";
+        this.apiUrl = "https://xox-update.onrender.com";
         this.playerName = 'Misafir' + Math.floor(Math.random() * 1000);
         this.currentPage = 'rooms';
         this.allRooms = [];
