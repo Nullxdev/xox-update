@@ -14,7 +14,6 @@
 .form-group{margin-bottom:16px}
 .form-group label{display:block;margin-bottom:8px}
 .form-group input{width:100%;padding:12px;background:rgba(33,150,243,.1);border:1px solid rgba(33,150,243,.3);border-radius:8px;color:#e3f2fd;box-sizing:border-box}
-.game-info-item{display:flex;justify-content:space-around;align-items:center;background:rgba(33,150,243,.1);padding:12px;border-radius:8px;margin-bottom:16px}
 .game-board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:20px 0}
 .cell{aspect-ratio:1;background:rgba(33,150,243,.1);border:2px solid rgba(33,150,243,.3);border-radius:8px;display:flex;justify-content:center;align-items:center;font-size:2.5em;font-weight:700;cursor:pointer;color:#2196f3;user-select:none}
 #game-status{font-weight:500;color:#2196f3;margin-top:12px}
@@ -32,8 +31,16 @@
 .log-item{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.2);padding:6px 10px;border-radius:4px}
 .log-time{color:#90caf9}
 .log-winner{color:#4caf50;font-weight:700}
-#create-room-btn,#leave-room-btn{width:100%;background:#2196f3;color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
-#leave-room-btn{background:#f44336}
+#create-room-btn{width:100%;background:#2196f3;color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
 .xox-notification{position:fixed;bottom:100px;right:30px;padding:12px 20px;border-radius:8px;z-index:10001;font-size:14px;background:rgba(33,150,243,.9);color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:slideIn .3s ease}
 .xox-notification-error{background:rgba(244,67,54,.9)}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+/* YENİ EKLENEN STİLLER */
+#game-info{width:100%;margin-bottom:16px}
+.game-header{display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:8px}
+.game-players-display{display:flex;align-items:center;gap:10px;font-size:1.2em;flex-grow:1}
+.game-players-display .p1{color:#4caf50}
+.game-players-display .p2{color:#f44336}
+.game-players-display .vs{font-size:0.9em;color:#90caf9}
+#leave-room-btn{background:#f44336;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500}
+.game-meta{font-size:11px;color:#90caf9;opacity:.7;text-align:center}
