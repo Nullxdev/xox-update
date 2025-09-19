@@ -6,6 +6,7 @@ class XOXGame {
         this.allRooms = [];
         this.pollingErrorCount = 0;
         this.roomId = null;
+        this.canMove = true;
         this.init();
     }
 
@@ -22,33 +23,18 @@ class XOXGame {
         panel.id = 'xox-game-panel';
         panel.style.display = 'none';
         panel.innerHTML = `
-            <div class="xox-header">
-                <span class="xox-title">CG XOX OYUNU</span>
-                <span class="xox-username"></span>
-                <button id="close-panel-btn">×</button>
-            </div>
+            <div class="xox-header"><span class="xox-title">CG XOX OYUNU</span><span class="xox-username"></span><button id="close-panel-btn">×</button></div>
             <div class="xox-nav">
-                <button class="nav-btn active" data-page="rooms">Odalar</button>
-                <button class="nav-btn" data-page="create">Oda Oluştur</button>
-                <button class="nav-btn" data-page="stats">İstatistik</button>
-                <button class="nav-btn" data-page="game" id="game-nav" style="display:none">Oyun</button>
+                <button class="nav-btn active" data-page="rooms">Odalar</button><button class="nav-btn" data-page="create">Oda Oluştur</button>
+                <button class="nav-btn" data-page="stats">İstatistik</button><button class="nav-btn" data-page="game" id="game-nav" style="display:none">Oyun</button>
             </div>
             <div class="xox-content">
                 <div id="page-rooms" class="page active"><div id="rooms-list" class="rooms-list"></div></div>
-                <div id="page-create" class="page">
-                    <div class="create-room-form">
-                        <h3>Yeni Oda Oluştur</h3>
-                        <div class="form-group"><label>Kaç el oynanacak? (max 10)</label><input type="number" id="max-rounds" min="1" max="10" value="1"></div>
-                        <button id="create-room-btn">Oda Oluştur</button>
-                    </div>
-                </div>
+                <div id="page-create" class="page"><div class="create-room-form"><h3>Yeni Oda Oluştur</h3><div class="form-group"><label>Kaç el oynanacak? (max 10)</label><input type="number" id="max-rounds" min="1" max="10" value="1"></div><button id="create-room-btn">Oda Oluştur</button></div></div>
                 <div id="page-stats" class="page"><div id="stats-content">Yükleniyor...</div></div>
-                <div id="page-game" class="page">
-                    <div class="game-container"><div id="game-info"></div><div id="game-board" class="game-board"></div><div id="game-status"></div></div>
-                </div>
+                <div id="page-game" class="page"><div class="game-container"><div id="game-info"></div><div id="game-board" class="game-board"></div><div id="game-status"></div></div></div>
             </div>`;
         document.body.appendChild(panel);
-
         const toggleBtn = document.createElement('div');
         toggleBtn.id = 'xox-toggle-btn';
         toggleBtn.innerHTML = `<span>🎲</span>`;
@@ -87,11 +73,7 @@ class XOXGame {
 
     async apiRequest(endpoint, options = {}) {
         try {
-            const response = await fetch(`${this.apiUrl}/${endpoint}`, {
-                method: 'GET',
-                ...options,
-                headers: { 'Content-Type': 'application/json', ...options.headers },
-            });
+            const response = await fetch(`${this.apiUrl}/${endpoint}`, { method: 'GET', ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: "Sunucu hatası" }));
                 throw new Error(errorData.message);
@@ -136,19 +118,21 @@ class XOXGame {
 
     async handleCellClick(event) {
         const cell = event.target;
-        if (!cell.classList.contains('cell') || cell.textContent !== '' || !this.gameActive || this.currentPlayer !== this.player.symbol) {
+        if (!cell.classList.contains('cell') || cell.textContent !== '' || !this.gameActive || this.currentPlayer !== this.player.symbol || !this.canMove) {
             return;
         }
+        this.canMove = false;
         const index = cell.dataset.index;
         await this.apiRequest(`rooms/${this.roomId}/move`, {
             method: 'POST',
             body: JSON.stringify({ player: this.player, index: parseInt(index) })
         });
+        setTimeout(() => { this.canMove = true; }, 1000); 
     }
 
     async leaveRoom() {
         if (!this.roomId) return;
-        await this.apiRequest(`rooms/${this.roomId}/leave`, { method: 'POST', body: JSON.stringify({ playerName: this.player.name }) });
+        await this.apiRequest(`rooms/${this.roomId}/leave`, { method: 'POST' });
         this.resetGame();
     }
     
@@ -158,9 +142,24 @@ class XOXGame {
         
         document.getElementById('game-nav').style.display = 'block';
 
-        document.getElementById('game-info').innerHTML = `
-            <div class="game-info-item"><span>Oda: <strong>${this.roomId}</strong></span></div>
-            <button id="leave-room-btn">${playerIsSpectator ? 'İzlemeyi Bırak' : 'Odadan Ayrıl'}</button>`;
+        // --- DEĞİŞİKLİK BURADA ---
+        const player1 = room.players[0] ? `${room.players[0].name} (X)` : '';
+        const player2 = room.players[1] ? `${room.players[1].name} (O)` : 'Rakip Bekleniyor...';
+        
+        const gameInfoHTML = `
+            <div class="game-header">
+                <div class="game-players-display">
+                    <span class="player-name p1">${player1}</span>
+                    <span class="vs">vs</span>
+                    <span class="player-name p2">${player2}</span>
+                </div>
+                <button id="leave-room-btn">${playerIsSpectator ? 'İzlemeyi Bırak' : 'Odadan Ayrıl'}</button>
+            </div>
+            <div class="game-meta">Oda ID: ${this.roomId}</div>
+        `;
+        document.getElementById('game-info').innerHTML = gameInfoHTML;
+        // --- DEĞİŞİKLİK BİTTİ ---
+
         document.getElementById('leave-room-btn').addEventListener('click', () => this.leaveRoom());
 
         document.getElementById('game-board').innerHTML = this.gameBoard.map((cell, index) => `<div class="cell" data-index="${index}">${cell}</div>`).join('');
@@ -242,13 +241,10 @@ class XOXGame {
     }
 
     async loadStats() {
-        // İstatistikler henüz tam olarak implemente edilmedi.
         document.getElementById('stats-content').innerHTML = '<div class="no-data">İstatistikler yakında...</div>';
     }
 
-    renderStats(stats) {
-        // ...
-    }
+    renderStats(stats) {}
 
     showNotification(message, type = "info", duration = 3000) {
         document.querySelectorAll('.xox-notification').forEach(n => n.remove());
@@ -264,9 +260,9 @@ class XOXGame {
         this.startRoomMonitoring();
         this.roomId = null;
         this.player.symbol = null;
+        this.canMove = true;
         document.getElementById('game-nav').style.display = 'none';
         this.showPage('rooms');
     }
 }
-
 new XOXGame();
