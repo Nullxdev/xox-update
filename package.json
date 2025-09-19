@@ -1,7 +1,7 @@
 {
   "name": "xox-server",
-  "version": "1.5.0",
-  "description": "CG XOX Game Server with Redis",
+  "version": "2.0.0",
+  "description": "CG XOX Game Server with Bot Mode",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
