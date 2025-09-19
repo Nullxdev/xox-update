@@ -11,7 +11,7 @@ app.use(express.json());
 let redisClient;
 (async () => {
     try {
-        if (!process.env.REDIS_URL) throw new Error("REDIS_URL bulunamadı.");
+        if (!process.env.REDIS_URL) throw new Error("REDIS_URL environment değişkeni bulunamadı.");
         redisClient = redis.createClient({ url: process.env.REDIS_URL });
         redisClient.on('error', (err) => console.error('Redis Hatası', err));
         await redisClient.connect();
@@ -50,7 +50,20 @@ const prepareNextRound = (room) => {
 
 app.get("/", (req, res) => res.json({ success: true, message: "CG XOX Sunucusu Aktif" }));
 
-app.get("/rooms", async (req, res) => { /* Değişiklik Yok */ });
+app.get("/rooms", async (req, res) => {
+    try {
+        if (!redisClient?.isOpen) return res.status(503).json({ success: false, message: "Veritabanı hazır değil." });
+        const roomIds = await redisClient.sMembers(ROOMS_SET_KEY);
+        if (roomIds.length === 0) return res.json({ success: true, rooms: [] });
+        const roomsData = await redisClient.mGet(roomIds.map(getRoomKey));
+        const roomList = roomsData.filter(Boolean).map(roomStr => JSON.parse(roomStr))
+            .filter(room => room && !room.gameFinished)
+            .map(room => ({ id: room.id, players: room.players, spectators: room.spectators || [], roundWins: room.roundWins || {} }));
+        res.json({ success: true, rooms: roomList });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Odalar alınamadı." });
+    }
+});
 
 app.get("/rooms/:roomId", async (req, res) => {
     const roomData = await redisClient.get(getRoomKey(req.params.roomId));
@@ -87,7 +100,18 @@ app.post("/rooms/:roomId/join", async (req, res) => {
     res.json({ success: true, room });
 });
 
-app.post("/rooms/:roomId/watch", async (req, res) => { /* Değişiklik Yok */ });
+app.post("/rooms/:roomId/watch", async (req, res) => {
+    const { spectatorName } = req.body;
+    const roomKey = getRoomKey(req.params.roomId);
+    let roomData = await redisClient.get(roomKey);
+    if (!roomData) return res.status(404).json({ success: false, message: "Oda bulunamadı" });
+    let room = JSON.parse(roomData);
+    if (!room.spectators.includes(spectatorName)) {
+        room.spectators.push(spectatorName);
+        await redisClient.set(roomKey, JSON.stringify(room), { KEEPTTL: true });
+    }
+    res.json({ success: true, room });
+});
 
 app.post("/rooms/:roomId/move", async (req, res) => {
     const { player, index } = req.body;
@@ -96,7 +120,9 @@ app.post("/rooms/:roomId/move", async (req, res) => {
     if (!roomData) return res.status(404).json({ success: false, message: "Oda bulunamadı" });
     
     let room = JSON.parse(roomData);
-    if (!room.gameActive || room.currentPlayer !== player.symbol || room.gameBoard[index] !== '') {
+    const playerInRoom = room.players.find(p => p.name === player.name);
+
+    if (!room.gameActive || !playerInRoom || room.currentPlayer !== player.symbol || room.gameBoard[index] !== '') {
         return res.status(400).json({ success: false, message: "Geçersiz hamle" });
     }
 
@@ -105,12 +131,14 @@ app.post("/rooms/:roomId/move", async (req, res) => {
     
     if (winInfo) {
         const winner = room.players.find(p => p.symbol === winInfo.winner);
-        room.roundWins[winner.name]++;
-        room.winner = winner.name;
-        room.winningLine = winInfo;
-        room.gameActive = false;
-        if (room.roundWins[winner.name] >= Math.ceil(room.maxRounds / 2) || room.currentRound >= room.maxRounds) {
-            room.gameFinished = true;
+        if(winner) {
+            room.roundWins[winner.name]++;
+            room.winner = winner.name;
+            room.winningLine = winInfo;
+            room.gameActive = false;
+            if (room.roundWins[winner.name] >= Math.ceil(room.maxRounds / 2) || room.currentRound >= room.maxRounds) {
+                room.gameFinished = true;
+            }
         }
     } else if (checkDraw(room.gameBoard)) {
         room.isDraw = true;
@@ -137,7 +165,12 @@ app.post("/rooms/:roomId/next-round", async (req, res) => {
     res.json({ success: true, room });
 });
 
-app.post("/rooms/:roomId/leave", async (req, res) => { /* Değişiklik Yok */ });
-app.get("/stats", (req, res) => { /* Değişiklik Yok */ });
+app.post("/rooms/:roomId/leave", async (req, res) => {
+    await redisClient.sRem(ROOMS_SET_KEY, req.params.roomId);
+    await redisClient.del(getRoomKey(req.params.roomId));
+    res.json({ success: true });
+});
+
+app.get("/stats", (req, res) => res.json({ success: true, stats: gameStats }));
 
 app.listen(PORT, () => console.log(`Sunucu ${PORT} portunda çalışıyor.`));
