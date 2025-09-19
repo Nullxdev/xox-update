@@ -6,7 +6,7 @@
     transition: all .3s; color: #fff; font-weight: 700; font-size: 24px;
 }
 #xox-game-panel {
-    display: none; /* Varsayılan olarak gizli */
+    display: none;
     position: fixed !important; bottom: 20px !important; right: 100px !important;
     width: 400px !important; height: 580px !important;
     background: rgba(18, 24, 38, .95) !important;
@@ -47,7 +47,7 @@
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; margin-bottom: 8px; }
 .form-group input { width: 100%; padding: 12px; background: rgba(33, 150, 243, .1); border: 1px solid rgba(33, 150, 243, .3); border-radius: 8px; color: #e3f2fd; box-sizing: border-box; }
-.game-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
+.game-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; position: relative; }
 .cell { aspect-ratio: 1; background: rgba(33, 150, 243, .1); border: 2px solid rgba(33, 150, 243, .3); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 2.5em; font-weight: 700; cursor: pointer; color: #2196f3; user-select: none; }
 #game-status { font-weight: 500; color: #2196f3; margin-top: 12px; }
 .rooms-list { display: flex; flex-direction: column; gap: 8px; }
@@ -60,10 +60,6 @@
 .score-p1 { color: #4caf50; }
 .score-p2 { color: #f44336; }
 .score-separator { color: #90caf9; }
-.log-container { font-family: Consolas, monospace; font-size: 12px; gap: 10px; }
-.log-item { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, .2); padding: 6px 10px; border-radius: 4px; }
-.log-time { color: #90caf9; }
-.log-winner { color: #4caf50; font-weight: 700; }
 #create-room-btn { width: 100%; background: #2196f3; color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
 .xox-notification { position: fixed; bottom: 100px; right: 30px; padding: 12px 20px; border-radius: 8px; z-index: 2147483647; font-size: 14px; background: rgba(33, 150, 243, .9); color: #fff; box-shadow: 0 6px 20px rgba(0, 0, 0, .3); animation: slideIn .3s ease; }
 .xox-notification-error { background: rgba(244, 67, 54, .9); }
@@ -75,7 +71,6 @@
 .game-players-display .vs { font-size: .9em; color: #90caf9; }
 #leave-room-btn { background: #f44336; width: auto; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
 .game-meta { font-size: 11px; color: #90caf9; opacity: .7; text-align: center; }
-.game-board { position: relative; }
 .winning-cell { color: #ffeb3b !important; transform: scale(1.1); }
 .game-board[class*="win-"]::after { content: ''; position: absolute; background: #FFEB3B; border-radius: 3px; box-shadow: 0 0 10px #FFEB3B; }
 .game-board.win-0::after, .game-board.win-1::after, .game-board.win-2::after { width: 90%; height: 6px; left: 5%; }
@@ -84,3 +79,5 @@
 .game-board.win-0::after { top: 15%; } .game-board.win-1::after { top: 48%; } .game-board.win-2::after { top: 81%; }
 .game-board.win-3::after { left: 15%; } .game-board.win-4::after { left: 48%; } .game-board.win-5::after { left: 81%; }
 .game-board.win-6::after { transform: rotate(45deg); } .game-board.win-7::after { transform: rotate(-45deg); }
+.final-winner { font-size: 1.2em; font-weight: bold; color: #FFEB3B; padding: 10px; border-radius: 8px; background: rgba(255, 235, 59, 0.1); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
