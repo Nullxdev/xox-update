@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CG ONLINE XOX OYUNU | VenoX",
-  "version": "1.3",
+  "version": "1.4",
   "description": "CheatGlobal.com için özel XOX oyunu eklentisi",
   "permissions": [ "storage" ],
   "host_permissions": [
