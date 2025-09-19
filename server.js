@@ -32,7 +32,7 @@ const checkWin = (board) => {
     for (let i = 0; i < WINNING_COMBINATIONS.length; i++) {
         const [a, b, c] = WINNING_COMBINATIONS[i];
         if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-            return { winner: board[a], line: WINNING_COMBINATIONS[i], index: i };
+            return { winnerSymbol: board[a], line: WINNING_COMBINATIONS[i], index: i };
         }
     }
     return null;
@@ -74,9 +74,7 @@ app.get("/rooms", async (req, res) => {
 
         const roomList = validRoomsData.map(roomStr => JSON.parse(roomStr));
         
-        const activeUsers = roomList.reduce((acc, room) => {
-            return acc + (room.players?.length || 0) + (room.spectators?.length || 0);
-        }, 0);
+        const activeUsers = roomList.reduce((acc, room) => acc + (room.players?.length || 0) + (room.spectators?.length || 0), 0);
         
         const filteredRoomList = roomList
             .filter(room => room && !room.gameFinished)
@@ -84,6 +82,7 @@ app.get("/rooms", async (req, res) => {
 
         res.json({ success: true, rooms: filteredRoomList, activeUsers: activeUsers });
     } catch (err) {
+        console.error("Oda listeleme hatası:", err);
         res.status(500).json({ success: false, message: "Odalar alınamadı." });
     }
 });
@@ -121,7 +120,7 @@ app.post("/rooms/:roomId/join", async (req, res) => {
     room.roundWins[playerName] = 0;
     room.gameActive = true;
     
-    await redisClient.set(roomKey, JSON.stringify(room));
+    await redisClient.set(roomKey, JSON.stringify(room), { KEEPTTL: true });
     await redisClient.expire(roomKey, ROOM_EXPIRATION_SECONDS);
     
     res.json({ success: true, room });
@@ -157,7 +156,7 @@ app.post("/rooms/:roomId/move", async (req, res) => {
     const winInfo = checkWin(room.gameBoard);
     
     if (winInfo) {
-        const winner = room.players.find(p => p.symbol === winInfo.winner);
+        const winner = room.players.find(p => p.symbol === winInfo.winnerSymbol);
         if(winner) {
             room.roundWins[winner.name]++;
             room.winner = winner.name;
@@ -177,7 +176,7 @@ app.post("/rooms/:roomId/move", async (req, res) => {
         room.currentPlayer = player.symbol === 'X' ? 'O' : 'X';
     }
 
-    await redisClient.set(roomKey, JSON.stringify(room));
+    await redisClient.set(roomKey, JSON.stringify(room), { KEEPTTL: true });
     if (!room.gameFinished) {
         await redisClient.expire(roomKey, ROOM_EXPIRATION_SECONDS);
     } else {
@@ -195,7 +194,7 @@ app.post("/rooms/:roomId/next-round", async (req, res) => {
     
     prepareNextRound(room);
 
-    await redisClient.set(roomKey, JSON.stringify(room));
+    await redisClient.set(roomKey, JSON.stringify(room), { KEEPTTL: true });
     await redisClient.expire(roomKey, ROOM_EXPIRATION_SECONDS);
 
     res.json({ success: true, room });
