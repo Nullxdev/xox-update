@@ -1,0 +1,16 @@
+{
+  "name": "xox-server",
+  "version": "1.0.0",
+  "description": "CG XOX Game Server with Redis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "VenoX",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "redis": "^4.6.10"
+  }
+}
