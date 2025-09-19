@@ -87,33 +87,44 @@ class XOXGame {
 
     async createRoom() {
         const maxRounds = document.getElementById('max-rounds').value;
-        const result = await this.apiRequest('rooms', { method: 'POST', body: JSON.stringify({ creatorName: this.player.name, maxRounds }) });
-        if (result.success) {
-            this.roomId = result.roomId;
-            this.player.symbol = 'X';
-            this.showPage('game');
-            this.startPolling();
-        }
+        try {
+            const result = await this.apiRequest('rooms', { method: 'POST', body: JSON.stringify({ creatorName: this.player.name, maxRounds }) });
+            if (result.success) {
+                this.roomId = result.roomId;
+                this.player.symbol = 'X';
+                this.showPage('game');
+                this.startPolling(); // Polling'i başlat, ilk render'ı kendi yapacak.
+            }
+        } catch(e) { console.error("Oda oluşturulamadı:", e); }
     }
 
     async joinRoom(roomId) {
-        const result = await this.apiRequest(`rooms/${roomId}/join`, { method: 'POST', body: JSON.stringify({ playerName: this.player.name }) });
-        if (result.success) {
-            this.roomId = result.roomId;
-            this.player.symbol = 'O';
-            this.showPage('game');
-            this.startPolling();
-        }
+        try {
+            const result = await this.apiRequest(`rooms/${roomId}/join`, { method: 'POST', body: JSON.stringify({ playerName: this.player.name }) });
+            if (result.success) {
+                this.roomId = roomId;
+                this.player.symbol = 'O';
+                this.showPage('game');
+                // --- DÜZELTME BURADA ---
+                // Boş ekran sorununu çözmek için, polliing'i beklemeden ilk oyun görüntüsünü hemen çiziyoruz.
+                this.renderGame(result.room);
+                // --- DÜZELTME BİTTİ ---
+                this.startPolling();
+            }
+        } catch(e) { console.error("Odaya katılamadı:", e); }
     }
 
     async watchRoom(roomId) {
-        const result = await this.apiRequest(`rooms/${roomId}/watch`, { method: 'POST', body: JSON.stringify({ spectatorName: this.player.name }) });
-        if (result.success) {
-            this.roomId = roomId;
-            this.player.symbol = null; 
-            this.showPage('game');
-            this.startPolling();
-        }
+        try {
+            const result = await this.apiRequest(`rooms/${roomId}/watch`, { method: 'POST', body: JSON.stringify({ spectatorName: this.player.name }) });
+            if (result.success) {
+                this.roomId = roomId;
+                this.player.symbol = null; 
+                this.showPage('game');
+                this.renderGame(result.room); // İzleyici için de anında güncelle
+                this.startPolling();
+            }
+        } catch(e) { console.error("Oda izlenemedi:", e); }
     }
 
     async handleCellClick(event) {
@@ -142,7 +153,6 @@ class XOXGame {
         
         document.getElementById('game-nav').style.display = 'block';
 
-        // --- DEĞİŞİKLİK BURADA ---
         const player1 = room.players[0] ? `${room.players[0].name} (X)` : '';
         const player2 = room.players[1] ? `${room.players[1].name} (O)` : 'Rakip Bekleniyor...';
         
@@ -158,8 +168,6 @@ class XOXGame {
             <div class="game-meta">Oda ID: ${this.roomId}</div>
         `;
         document.getElementById('game-info').innerHTML = gameInfoHTML;
-        // --- DEĞİŞİKLİK BİTTİ ---
-
         document.getElementById('leave-room-btn').addEventListener('click', () => this.leaveRoom());
 
         document.getElementById('game-board').innerHTML = this.gameBoard.map((cell, index) => `<div class="cell" data-index="${index}">${cell}</div>`).join('');
@@ -167,8 +175,10 @@ class XOXGame {
         const statusEl = document.getElementById('game-status');
         if (this.winner) {
             statusEl.innerText = `Kazanan: ${this.winner}!`;
+            this.stopPolling();
         } else if (this.isDraw) {
             statusEl.innerText = 'Berabere!';
+            this.stopPolling();
         } else if (!this.gameActive) {
             statusEl.innerText = 'Rakip bekleniyor...';
         } else {
